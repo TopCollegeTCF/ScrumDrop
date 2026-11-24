@@ -1,2 +1,2 @@
-# ScramDrop
-ScramDrop for your wallet
+# ScrumDrop
+ScrumDrop for your wallet
