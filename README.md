@@ -19,7 +19,7 @@ C#, ASP.NET Core MVC, Razor и SQLite.
 
 ## Команда
 
-- HoMaX
-- DozFire-College
-- Efka
-- stupiqplonde
+- [HoMaX](https://github.com/nictomist1-arch)
+- [DozFire-College](https://github.com/DozFire-College)
+- [Efka](https://github.com/500EFKA500)
+- [stupiqplonde](https://github.com/stupiqplonde)
