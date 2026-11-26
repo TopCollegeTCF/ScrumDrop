@@ -23,3 +23,9 @@ C#, ASP.NET Core MVC, Razor и SQLite.
 - [DozFire-College](https://github.com/DozFire-College)
 - [Efka](https://github.com/500EFKA500)
 - [stupiqplonde](https://github.com/stupiqplonde)
+
+## Работа команды
+
+[План спринта на 10 дней](docs/sprint/README.md) · [Задачи четырёх участников](docs/sprint/tracks) · [Исходник интерактивного прототипа](docs/prototype/index.html)
+
+![Эскиз каталога и открытия кейса](docs/sprint/sketches/cases.png)

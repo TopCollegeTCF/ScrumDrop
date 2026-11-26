@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="ru"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ScrumDrop — Кейсы</title>
+<style>
+:root{color-scheme:dark;--lime:#83e525;--edge:#292431;font:16px/1.5 system-ui,sans-serif}*{box-sizing:border-box}body{margin:0;background:#000;color:#f1eef7}main,header,footer{max-width:1100px;margin:auto;padding:0 5vw}header,footer{display:flex;align-items:center;justify-content:space-between;gap:18px;padding-block:23px;border-bottom:1px solid var(--edge)}header strong{font-size:1.35rem;letter-spacing:-.06em}header b{color:var(--lime)}section{margin:30px 0}.hero{display:grid;grid-template-columns:1fr 1fr;align-items:center;background:#0c0032;border-radius:22px;overflow:hidden;padding:clamp(22px,5vw,55px);position:relative;isolation:isolate;min-height:260px}.hero div{z-index:1}.hero pre{font:clamp(6px,1vw,12px)/.93 monospace;margin:0;justify-self:center;user-select:none}h1{font-size:clamp(2.4rem,6vw,4.8rem);letter-spacing:-.07em;line-height:.97;margin:0}h2{letter-spacing:-.04em;margin:0 0 12px}.hero p,.muted{color:#c8c1d2}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}.card{background:#100e14;border:1px solid var(--edge);border-radius:16px;padding:20px}.card h3{margin:0}.item{font:bold 17px/1 monospace;color:#a067ff;margin:0 0 14px}.card button{font:inherit;font-weight:650;border:0;border-radius:9px;padding:9px 16px;background:var(--lime);color:#102000;cursor:pointer}button:hover{filter:brightness(1.1)}button:focus-visible,a:focus-visible{outline:3px solid #b494ff;outline-offset:4px}a{color:var(--lime)}footer{border-bottom:0;border-top:1px solid var(--edge)}ul{padding-left:20px}.message{min-height:1.6rem;color:var(--lime)}@media(max-width:620px){.grid{grid-template-columns:1fr}.hero{grid-template-columns:1fr}.hero pre{font-size:7px}header{flex-wrap:wrap}}
+
+header nav{display:flex;gap:18px}header nav a{color:#bbb5c6;text-decoration:none}header nav a:hover{color:#fff}
+.hero{background:radial-gradient(ellipse at 75% 55%,#19006155,transparent 46%),#030205;min-height:345px;border:1px solid #1c1726}
+.hero p{max-width:33ch}.hero pre{filter:drop-shadow(0 0 7px #3500d3);animation:sway 7s ease-in-out infinite alternate}
+.hero a{display:inline-block;color:#100919;background:#efebf6;padding:10px 17px;border-radius:25px;font-weight:650;text-decoration:none}
+.card{transition:border-color .25s,transform .25s}.card:focus-within,.card:hover{border-color:#633bc3}
+#cases .card:hover .item{transform:translateY(-3px)}.item{transition:transform .25s}
+.message:empty{display:none}.message:not(:empty){padding:14px 18px;border-left:2px solid var(--lime);background:#0c0e09}
+.flash .item{animation:lift .55s ease-out}
+@keyframes sway{to{transform:translate(7px,-4px) rotate(3deg)}}
+@keyframes lift{40%{transform:translateY(-8px) rotate(-3deg);color:var(--lime)}}
+@media(max-width:620px){header nav{display:none}.hero pre{height:155px;overflow:hidden;justify-self:end}.hero{min-height:0}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
+</style>
+<header><strong>ScrumDrop</strong><nav aria-label="Разделы"><a href="#catalog">Кейсы</a><a href="#collection">Коллекция</a></nav><span>Баланс · <b id="balance">100</b> монет</span></header><main>
+<section class="hero"><div><h1>Коллекция<br>кейсов</h1><p>Выбери кейс и узнай, какой предмет попадёт в твою коллекцию.</p><a href="#catalog">Выбрать кейс</a></div><pre id="wave" aria-hidden="true"></pre></section>
+<section id="catalog"><h2>Каталог кейсов</h2><div class="grid" id="cases"></div><p class="message" role="status" id="result"></p></section>
+<section class="grid" id="collection"><article class="card"><h2>Инвентарь</h2><div id="bag"></div></article><article class="card"><h2>История открытий</h2><div id="log"></div></article></section></main><footer><span>ScrumDrop</span><a href="gallery.html">Галерея символов</a></footer>
+<script>
+const wave=document.querySelector('#wave');
+const colors=['#190061','#240090','#3500D3','#7734ed','#9945ff','#83e525'];
+for(let y=0;y<35;y++){
+  const center=32+13*Math.sin(y/7-1.5);
+  for(let x=0;x<65;x++){
+    const d=Math.abs(x-center), green=Math.abs(x-center-1.3)<2.4 && Math.sin(y/4)>.2;
+    const level=green?5:d<4?4:d<6?3:d<8?2:d<10?1:0;
+    const dot=document.createElement('span');
+    dot.textContent=d>12?' ':['.',':','+','*','#','%'][level];
+    dot.style.color=colors[level]; wave.append(dot);
+  }
+  wave.append('\n');
+}
+const catalog=[{name:'Орбита',items:['Кристалл','Звезда'],art:'      . * .\n    .-------.\n   /   (*)   /|\n  +---------+ |\n  |  ::::   | /\n  +---------+'},{name:'Листопад',items:['Лист','Кристалл'],art:'       .:.\n    .-------.\n   /   /%/   /|\n  +---------+ |\n  |  ....   | /\n  +---------+'}];
+const historyKey='scrumdrop-openings-v1';
+let openings=JSON.parse(localStorage.getItem(historyKey)||'[]');
+const balance=()=>100-30*openings.length;
+function showList(id,entries,empty){
+ const target=document.getElementById(id);target.replaceChildren();
+ if(!entries.length){target.textContent=empty;return}
+ const list=document.createElement('ul');for(const value of entries){const row=document.createElement('li');row.textContent=value;list.append(row)}target.append(list);
+}
+function render(){
+ document.querySelector('#balance').textContent=balance();
+ const counts=new Map();for(const row of openings)counts.set(row.item,(counts.get(row.item)||0)+1);
+ showList('bag',[...counts].map(([name,n])=>name+' × '+n),'Здесь появится первый предмет.');
+ showList('log',openings.slice().reverse().map(row=>row.name+' · '+row.item+' · −30'),'Кейсы ещё не открывались.');
+}
+for(const c of catalog){
+ const card=document.createElement('article');card.className='card';
+ card.innerHTML='<pre class="item" aria-hidden="true"></pre><h3></h3><p class="muted"></p><button type="button">Открыть за 30 монет</button>';
+ card.querySelector('pre').textContent=c.art;card.querySelector('h3').textContent=c.name;card.querySelector('p').textContent='Внутри: '+c.items.map(x=>x+(x==='Кристалл'?' (редкий)':' (обычный)')).join(', ');
+ card.querySelector('button').onclick=()=>{
+ if(balance()<30){document.querySelector('#result').textContent='Недостаточно монет. Для открытия нужно 30.';return}
+ card.classList.remove("flash");void card.offsetWidth;card.classList.add("flash");
+ const item=c.items[Math.floor(Math.random()*c.items.length)];openings.push({name:c.name,item});localStorage.setItem(historyKey,JSON.stringify(openings));render();document.querySelector('#result').textContent='Твоя награда — '+item+'!';
+ };document.querySelector('#cases').append(card);
+}
+render();
+</script></html>
