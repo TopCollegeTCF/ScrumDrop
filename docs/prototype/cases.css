@@ -20,3 +20,28 @@ dialog{width:min(390px,90vw);padding:24px;border-radius:22px;text-align:center;b
 .metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:11px;margin:0}.metrics>div,#bag li,#log li{background:#0a0a0d;border:1px solid #29272f;padding:16px}.metrics dd{font:700 clamp(1.7rem,3vw,3rem)/1.2 monospace;margin:12px 0 0;color:#ded2fa}.metrics dd small{font:500 .85rem system-ui}.metrics dt{font-size:.9rem}.spotlight{text-align:center}.spotlight img{width:min(100%,235px);mix-blend-mode:screen}.spotlight h2{font-size:.87rem;text-align:left}.spotlight h3{margin:0;font-size:1.45rem}.spotlight p:empty{display:none}.spotlight a,#name-form button{display:inline-block;background:var(--lav);color:#130d20;border:0;font-weight:650;padding:9px 13px;margin-top:12px}.dashboard ul{padding:0;list-style:none;margin:0;display:grid;gap:8px}#bag ul{grid-template-columns:repeat(auto-fit,minmax(130px,1fr))}#name-form label{display:block;margin-bottom:8px}#name-form div{display:flex;flex-wrap:wrap;gap:8px}#name-form input{background:#08080b;color:inherit;border:1px solid #534c61;font:inherit;padding:9px;max-width:100%}#name-form button{margin:0}#saved{display:block;color:#adc985}
 @media(max-width:950px){.dashboard{grid-template-columns:170px minmax(0,1fr)}.spotlight{grid-column:2}.spotlight img{width:110px}}
 @media(max-width:650px){.dashboard{width:92%;grid-template-columns:1fr;gap:12px}.spotlight{grid-column:auto}.profile-rail{grid-template-columns:minmax(100px,.8fr) 1.2fr;gap:8px}.portrait{height:100%;aspect-ratio:auto}.portrait div{padding:10px}.profile-nav{gap:0}.profile-nav a{padding:5px 8px}.pixel-panel:not(.portrait,.profile-nav){padding:16px}.metrics{gap:5px}.metrics>div{padding:7px}.metrics dt{font-size:.8rem}.metrics dd{font-size:1.55rem}.bar .wallet,.profile-link{padding:5px 9px;font-size:.88rem}}
+
+/* Размер ячейки следует за кеглем, чтобы просветы сохраняли форму цифр. */
+.matrix {
+  --tile: clamp(2px, .055em, 5px);
+  --joint: clamp(.55px, .014em, 1px);
+  --ink: #e4ddec;
+  font-weight: 850;
+  font-variant-numeric: tabular-nums;
+}
+.hero em.matrix, .shelf h2.matrix, .dashboard h1.matrix { --ink: #c3a9f4; }
+.dashboard h1.matrix { font-size: clamp(1.75rem, 3vw, 2.65rem); }
+.wallet b.matrix { font-size: 1.2em; }
+@supports (background-clip: text) {
+  .matrix {
+    background-image: linear-gradient(to right, transparent calc(100% - var(--joint)), #16121d 0),
+                      linear-gradient(to bottom, var(--ink) calc(100% - var(--joint)), #16121d 0);
+    background-size: var(--tile) var(--tile);
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+}
+@media (forced-colors: active) {
+  .matrix { background: none; -webkit-text-fill-color: currentColor; }
+}

@@ -2,22 +2,22 @@
 <html lang="ru">
 <head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ScrumDrop — Коллекция кейсов</title><link rel="stylesheet" href="cases.css"></head>
 <body>
-<header><div class="bar"><a class="brand" href="#">Scrum<span>Drop</span></a><nav><a href="#catalog">Кейсы</a></nav><span class="wallet"><i aria-hidden="true">◈</i> <b id="balance">100</b> монет</span><a class="profile-link" href="#account" aria-label="Личный кабинет">Кабинет</a></div></header>
+<header><div class="bar"><a class="brand" href="#">Scrum<span>Drop</span></a><nav><a href="#catalog">Кейсы</a></nav><span class="wallet"><i aria-hidden="true">◈</i> <b class="matrix" id="balance">100</b> монет</span><a class="profile-link" href="#account" aria-label="Личный кабинет">Кабинет</a></div></header>
 <main>
-<section class="hero"><canvas id="aurora" aria-hidden="true"></canvas><div class="wrap intro"><h1>Коллекция<br><em>кейсов.</em></h1><a class="cta" href="#catalog">Выбрать кейс</a></div></section>
-<section class="wrap shelf" id="catalog"><h2>Каталог кейсов</h2><div id="cases"></div></section>
+<section class="hero"><canvas id="aurora" aria-hidden="true"></canvas><div class="wrap intro"><h1><span class="matrix">Коллекция</span><br><em class="matrix">кейсов.</em></h1><a class="cta" href="#catalog">Выбрать кейс</a></div></section>
+<section class="wrap shelf" id="catalog"><h2 class="matrix">Каталог кейсов</h2><div id="cases"></div></section>
 <section id="account" class="dashboard" hidden aria-label="Личный кабинет">
 <aside class="profile-rail">
 <div class="pixel-panel portrait"><img src="cases/5.jpg" alt=""><div><small>Профиль игрока</small><h2 id="player"></h2></div></div>
 <nav class="pixel-panel profile-nav" aria-label="Разделы личного кабинета">
 <a href="#account">Обзор</a><a href="#account/inventory">Моя коллекция</a><a href="#account/history">История</a><a href="#account/settings">Настройки</a></nav></aside>
 <div class="profile-main">
-<section class="pixel-panel" id="overview"><h1 id="account-title" tabindex="-1">Личный кабинет</h1>
-<dl class="metrics"><div><dt>Баланс</dt><dd><span id="coins"></span> <small>монет</small></dd></div><div><dt>Открыто кейсов</dt><dd id="opened"></dd></div><div><dt>Видов предметов</dt><dd id="unique"></dd></div></dl></section>
+<section class="pixel-panel" id="overview"><h1 class="matrix" id="account-title" tabindex="-1">Личный кабинет</h1>
+<dl class="metrics"><div><dt>Баланс</dt><dd><span class="matrix" id="coins"></span> <small>монет</small></dd></div><div><dt>Открыто кейсов</dt><dd class="matrix" id="opened"></dd></div><div><dt>Видов предметов</dt><dd class="matrix" id="unique"></dd></div></dl></section>
 <section class="pixel-panel" id="inventory-panel"><h2>Моя коллекция</h2><div id="bag"></div></section>
 <section class="pixel-panel" id="history-panel"><h2>История открытий</h2><div id="log"></div></section>
 <section class="pixel-panel" id="settings-panel" hidden><h2>Настройки профиля</h2><form id="name-form"><label for="nickname">Имя игрока</label><div><input id="nickname" name="nickname" maxlength="24" required autocomplete="nickname"><button>Сохранить</button></div><span role="status" id="saved"></span></form><p>Имя и коллекция хранятся в этом браузере.</p></section></div>
 <aside class="pixel-panel spotlight"><h2 id="feature-title">Кейс из каталога</h2><img id="feature-img" src="cases/0.jpg" alt=""><h3 id="feature-name">Орбита</h3><p id="feature-reward"></p><a href="#catalog">Перейти к кейсам</a></aside></section>
 </main><footer class="wrap"><span>ScrumDrop</span><a href="gallery.html">Галерея символов</a></footer>
-<dialog id="detail"><form method="dialog"><button aria-label="Закрыть" class="close">×</button></form><img id="preview" alt=""><h2 id="name"></h2><p id="rewards"></p><p id="result" role="status"></p><button type="button" class="cta" id="buy">Открыть за 30 монет</button></dialog>
+<dialog id="detail"><form method="dialog"><button aria-label="Закрыть" class="close">×</button></form><img id="preview" alt=""><h2 class="matrix" id="name"></h2><p id="rewards"></p><p id="result" role="status"></p><button type="button" class="cta" id="buy">Открыть за 30 монет</button></dialog>
 <script src="cases.js"></script></body></html>
