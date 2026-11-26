@@ -133,17 +133,19 @@ function draw(time) {
   const phase = reduced.matches ? 0 : time * 0.00016;
   ctx.clearRect(0,0,width,height);
   const mobile = width < 600;
-  const left = mobile ? -0.24 : 0.22;
-  const base = mobile ? 0.24 : 0.48;
+  const overscan = 16;
+  const spacing = mobile ? 4 : 5;
+  const base = mobile ? 0.36 : 0.48;
   const amp = mobile ? 0.13 : 0.22;
-  const count = Math.ceil(width/5);
+  const count = Math.ceil((width + overscan * 2) / spacing);
   for (let strand=0;strand<38;strand++) {
     const v=(strand-18)/18;
     const green=Math.abs(v-.26)<.09;
     ctx.fillStyle=green?'rgba(150,241,46,.88)':v<-.5?'#3500d3':v<.27?'#9449ff':'#5424b8';
     ctx.globalAlpha=green?.88:.2+.53*(1-Math.abs(v));
     for(let i=0;i<count;i++){
-      const t=i/count, x=width*(left+t*(1.27-left));
+      const x = i * spacing - overscan;
+      const t = x / width;
       const angle=t*7.1+phase*.32+v*.82;
       const y=height*(base+amp*Math.sin(angle)+.14*Math.sin(t*10-phase*.22)+v*(.09+.07*Math.cos(t*8+phase)));
       const size=1.25+(1-Math.abs(v))*1.4;
