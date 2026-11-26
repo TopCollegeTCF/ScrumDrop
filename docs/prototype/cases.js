@@ -23,10 +23,13 @@ function showList(id, values, empty) {
 function render() {
   get('balance').textContent = balance();
   const counts = new Map();
-  for (const row of openings) counts.set(row.item, (counts.get(row.item) || 0) + 1);
+  for (const row of openings) {
+    const item = row.upgraded ? row.item+' +1' : row.item;
+    counts.set(item, (counts.get(item) || 0) + 1);
+  }
   get('coins').textContent = balance();
   get('opened').textContent = openings.length;
-  get('unique').textContent = counts.size;
+  get('unique').textContent = new Set(openings.map(row => row.item)).size;
   const last = openings[openings.length - 1];
   if (last) {
     get('feature-title').textContent = 'Последнее открытие';
@@ -77,7 +80,6 @@ get('buy').onclick = () => {
   render();
   get('result').textContent = 'Твоя награда — '+item+'!';
 };
-render();
 
 const nicknameKey = 'scrumdrop-nickname-v1';
 function displayName() {
@@ -85,15 +87,29 @@ function displayName() {
   get('player').textContent = name;
   get('nickname').value = name;
 }
-function showAccount() {
+function showPage() {
   const routes = {'#account':'overview','#collection':'inventory','#account/inventory':'inventory','#account/history':'history','#account/settings':'settings'};
   const tab = routes[location.hash];
   const inAccount = Boolean(tab);
-  document.querySelector('.hero').hidden = inAccount;
-  get('catalog').hidden = inAccount;
+  const activity = ['#games','#upgrade'].find(hash => hash === location.hash);
+  document.querySelector('.hero').hidden = inAccount || Boolean(activity);
+  get('catalog').hidden = inAccount || Boolean(activity);
+  get('games').hidden = activity !== '#games';
+  get('upgrade').hidden = activity !== '#upgrade';
+  for (const link of document.querySelectorAll('.main-nav a')) {
+    if (!inAccount && link.hash === (activity || '#catalog')) link.setAttribute('aria-current','page');
+    else link.removeAttribute('aria-current');
+  }
+  if (activity !== '#games') resetReaction();
   get('account').hidden = !inAccount;
   document.title = inAccount ? 'ScrumDrop — Личный кабинет' : 'ScrumDrop — Коллекция кейсов';
-  if (inAccount) {
+  if (activity) {
+    const heading = document.querySelector(activity+' h1');
+    document.title = 'ScrumDrop — '+heading.textContent;
+    heading.focus({preventScroll:true});
+    window.scrollTo({top:0,behavior:'instant'});
+    if (activity === '#upgrade') renderUpgrade();
+  } else if (inAccount) {
     displayName();
     get('saved').textContent = '';
     for (const link of document.querySelectorAll('.profile-nav a')) {
@@ -122,8 +138,98 @@ get('name-form').onsubmit = event => {
   get('saved').textContent = 'Имя сохранено';
 };
 get('nickname').oninput = event => { event.target.setCustomValidity(''); get('saved').textContent = ''; };
-window.addEventListener('hashchange',showAccount);
-showAccount();
+const avatars = [5, 0, 1, 4, 9];
+const avatarKey = 'scrumdrop-avatar-v1';
+for (const id of avatars) {
+  const label = document.createElement('label');
+  const input = document.createElement('input');
+  input.type = 'radio';
+  input.name = 'avatar';
+  input.value = id;
+  input.setAttribute('aria-label', catalog[id][0]);
+  input.checked = id === Number(localStorage.getItem(avatarKey) ?? 5);
+  const image = document.createElement('img');
+  image.src = 'cases/'+id+'.jpg';
+  image.alt = '';
+  if (input.checked) get('avatar').src = image.src;
+  input.onchange = () => {
+    get('avatar').src = image.src;
+    localStorage.setItem(avatarKey,id);
+  };
+  label.append(input,image);
+  get('avatar-options').append(label);
+}
+get('top-up').onclick = () => get('card-demo').showModal();
+
+const upgradeItem = get('upgrade-item');
+function renderUpgrade() {
+  upgradeItem.replaceChildren();
+  openings.forEach((row, index) => {
+    if (!row.upgraded) upgradeItem.add(new Option(row.item+' · '+row.name,index));
+  });
+  get('upgrade-form').hidden = !upgradeItem.length;
+  get('upgrade-empty').hidden = Boolean(upgradeItem.length);
+  get('upgrade-empty').firstChild.textContent = openings.length
+    ? 'Все предметы улучшены. Можно открыть ещё один '
+    : 'Для улучшения нужен предмет из ';
+  get('upgrade-empty').querySelector('a').textContent = openings.length ? 'кейс' : 'кейса';
+}
+get('upgrade-form').onsubmit = event => {
+  event.preventDefault();
+  const row = openings[Number(upgradeItem.value)];
+  row.upgraded = true;
+  localStorage.setItem(key,JSON.stringify(openings));
+  get('upgrade-status').textContent = row.item+' улучшен до +1.';
+  render();
+  renderUpgrade();
+};
+
+const reaction = get('reaction');
+const reactionStatus = get('reaction-status');
+const recordKey = 'scrumdrop-reaction-v1';
+let best = Number(localStorage.getItem(recordKey));
+let timer;
+let signalTime = 0;
+function showRecord() {
+  get('reaction-record').textContent = best ? 'Рекорд · '+best+' мс' : '';
+}
+function resetReaction() {
+  clearTimeout(timer);
+  timer = undefined;
+  signalTime = 0;
+  reaction.classList.remove('ready');
+  reaction.textContent = 'Начать';
+  reactionStatus.textContent = 'Нажми «Начать» и дождись зелёного сигнала.';
+}
+reaction.onclick = () => {
+  if (timer) {
+    resetReaction();
+    reactionStatus.textContent = 'Слишком рано. Попробуй ещё раз.';
+  } else if (signalTime) {
+    const time = Math.max(1, Math.round(performance.now()-signalTime));
+    resetReaction();
+    if (!best || time < best) {
+      best = time;
+      localStorage.setItem(recordKey,best);
+      showRecord();
+    }
+    reactionStatus.textContent = 'Твоя реакция · '+time+' мс';
+  } else {
+    reactionStatus.textContent = 'Жди зелёного сигнала…';
+    reaction.textContent = 'Жди…';
+    timer = setTimeout(() => {
+      timer = undefined;
+      reaction.textContent = 'Сейчас!';
+      reactionStatus.textContent = 'Нажимай!';
+      reaction.classList.add('ready');
+      signalTime = performance.now();
+    }, 1100+Math.random()*1600);
+  }
+};
+showRecord();
+render();
+window.addEventListener('hashchange',showPage);
+showPage();
 
 const canvas = get('aurora');
 const ctx = canvas.getContext('2d');
