@@ -24,6 +24,9 @@ function render() {
   get('balance').textContent = balance();
   const counts = new Map();
   for (const row of openings) counts.set(row.item, (counts.get(row.item) || 0) + 1);
+  get('coins').textContent = balance();
+  get('opened').textContent = openings.length;
+  get('unique').textContent = counts.size;
   showList('bag', [...counts].map(([item,n]) => item+' × '+n), 'Здесь появится первый предмет.');
   showList('log', openings.slice().reverse().map(row => row.name+' · '+row.item+' · −30'), 'Кейсы ещё не открывались.');
 }
@@ -66,6 +69,40 @@ get('buy').onclick = () => {
   get('result').textContent = 'Твоя награда — '+item+'!';
 };
 render();
+
+const nicknameKey = 'scrumdrop-nickname-v1';
+function displayName() {
+  const name = localStorage.getItem(nicknameKey) || 'Игрок';
+  get('player').textContent = name;
+  get('nickname').value = name;
+}
+function showAccount() {
+  const inAccount = ['#account', '#collection'].includes(location.hash);
+  document.querySelector('.hero').hidden = inAccount;
+  get('catalog').hidden = inAccount;
+  get('account').hidden = !inAccount;
+  document.title = inAccount ? 'ScrumDrop — Личный кабинет' : 'ScrumDrop — Коллекция кейсов';
+  if (inAccount) {
+    displayName();
+    get('saved').textContent = '';
+    get('account-title').focus({preventScroll:true});
+    window.scrollTo({top:0,behavior:'instant'});
+  } else if (location.hash === '#catalog') {
+    get('catalog').scrollIntoView();
+  }
+}
+get('name-form').onsubmit = event => {
+  event.preventDefault();
+  const input = get('nickname');
+  const name = input.value.trim();
+  if (!name) { input.setCustomValidity('Введите имя игрока'); input.reportValidity(); return; }
+  localStorage.setItem(nicknameKey,name);
+  displayName();
+  get('saved').textContent = 'Имя сохранено';
+};
+get('nickname').oninput = event => { event.target.setCustomValidity(''); get('saved').textContent = ''; };
+window.addEventListener('hashchange',showAccount);
+showAccount();
 
 const canvas = get('aurora');
 const ctx = canvas.getContext('2d');

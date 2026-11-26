@@ -2,11 +2,17 @@
 <html lang="ru">
 <head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ScrumDrop — Коллекция кейсов</title><link rel="stylesheet" href="cases.css"></head>
 <body>
-<header><div class="bar"><a class="brand" href="#">Scrum<span>Drop</span></a><nav><a href="#catalog">Кейсы</a><a href="#collection">Коллекция</a></nav><span class="wallet"><i aria-hidden="true">◈</i> <b id="balance">100</b> монет</span></div></header>
+<header><div class="bar"><a class="brand" href="#">Scrum<span>Drop</span></a><nav><a href="#catalog">Кейсы</a></nav><span class="wallet"><i aria-hidden="true">◈</i> <b id="balance">100</b> монет</span><a class="profile-link" href="#account" aria-label="Личный кабинет">Кабинет</a></div></header>
 <main>
 <section class="hero"><canvas id="aurora" aria-hidden="true"></canvas><div class="wrap intro"><h1>Коллекция<br><em>кейсов.</em></h1><a class="cta" href="#catalog">Выбрать кейс</a></div></section>
 <section class="wrap shelf" id="catalog"><h2>Каталог кейсов</h2><div id="cases"></div></section>
-<section class="wrap collection" id="collection"><article><h2>Инвентарь</h2><div id="bag"></div></article><article><h2>История открытий</h2><div id="log"></div></article></section>
+<section id="account" class="wrap account" hidden>
+<a class="back" href="#catalog">Вернуться к кейсам</a>
+<h1 tabindex="-1" id="account-title">Личный кабинет</h1>
+<div class="profile-panel"><div><h2 id="player"></h2><p>Профиль в этом браузере</p></div>
+<form id="name-form"><label for="nickname">Имя игрока</label><div><input id="nickname" name="nickname" maxlength="24" required autocomplete="nickname"><button class="cta">Сохранить</button></div><span role="status" id="saved"></span></form></div>
+<dl class="stats"><div><dt>Баланс</dt><dd><span id="coins"></span> монет</dd></div><div><dt>Открыто кейсов</dt><dd id="opened"></dd></div><div><dt>Видов предметов</dt><dd id="unique"></dd></div></dl>
+<div class="collection" id="collection"><article><h2>Инвентарь</h2><div id="bag"></div></article><article><h2>История открытий</h2><div id="log"></div></article></div></section>
 </main><footer class="wrap"><span>ScrumDrop</span><a href="gallery.html">Галерея символов</a></footer>
 <dialog id="detail"><form method="dialog"><button aria-label="Закрыть" class="close">×</button></form><img id="preview" alt=""><h2 id="name"></h2><p id="rewards"></p><p id="result" role="status"></p><button type="button" class="cta" id="buy">Открыть за 30 монет</button></dialog>
 <script src="cases.js"></script></body></html>
