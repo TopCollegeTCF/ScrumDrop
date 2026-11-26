@@ -83,3 +83,16 @@ dialog{width:min(390px,90vw);padding:24px;border-radius:22px;text-align:center;b
   .bar .main-nav { display:flex; order:1; flex:1 0 100%; gap:5px }
   .main-nav a { flex:1; gap:4px; padding:6px 5px; font-size:.84rem }
 }
+
+.cta-green {
+  border: 1px solid #c4ff8b;
+  border-radius: 3px;
+  background: #a1ea61;
+  color: #14210b;
+  box-shadow: 3px 3px 0 #3a6123;
+}
+.cta-green:hover { background: #b9f984; }
+.cta-green:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 #3a6123; }
+@media (prefers-reduced-motion: reduce) {
+  .cta-green:active { transform: none; }
+}
