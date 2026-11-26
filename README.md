@@ -15,7 +15,7 @@ ScrumDrop — учебный командный проект по разрабо
 
 ## Предлагаемый стек
 
-C#, ASP.NET Core MVC, Razor и SQLite.
+Node.js, React, Vite, TypeScript, PostgreSQL.
 
 ## Команда
 
