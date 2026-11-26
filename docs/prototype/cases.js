@@ -27,6 +27,15 @@ function render() {
   get('coins').textContent = balance();
   get('opened').textContent = openings.length;
   get('unique').textContent = counts.size;
+  const last = openings[openings.length - 1];
+  if (last) {
+    get('feature-title').textContent = 'Последнее открытие';
+    get('feature-name').textContent = last.name;
+    get('feature-reward').textContent = 'Награда · '+last.item;
+    const index = catalog.findIndex(([name]) => name === last.name);
+    get('feature-img').hidden = index < 0;
+    if (index >= 0) get('feature-img').src = 'cases/'+index+'.jpg';
+  }
   showList('bag', [...counts].map(([item,n]) => item+' × '+n), 'Здесь появится первый предмет.');
   showList('log', openings.slice().reverse().map(row => row.name+' · '+row.item+' · −30'), 'Кейсы ещё не открывались.');
 }
@@ -77,7 +86,9 @@ function displayName() {
   get('nickname').value = name;
 }
 function showAccount() {
-  const inAccount = ['#account', '#collection'].includes(location.hash);
+  const routes = {'#account':'overview','#collection':'inventory','#account/inventory':'inventory','#account/history':'history','#account/settings':'settings'};
+  const tab = routes[location.hash];
+  const inAccount = Boolean(tab);
   document.querySelector('.hero').hidden = inAccount;
   get('catalog').hidden = inAccount;
   get('account').hidden = !inAccount;
@@ -85,7 +96,17 @@ function showAccount() {
   if (inAccount) {
     displayName();
     get('saved').textContent = '';
-    get('account-title').focus({preventScroll:true});
+    for (const link of document.querySelectorAll('.profile-nav a')) {
+      if (routes[link.hash] === tab) link.setAttribute('aria-current','page');
+      else link.removeAttribute('aria-current');
+    }
+    get('overview').hidden = tab !== 'overview';
+    get('inventory-panel').hidden = !['overview','inventory'].includes(tab);
+    get('history-panel').hidden = !['overview','history'].includes(tab);
+    get('settings-panel').hidden = tab !== 'settings';
+    const heading = document.querySelector('.profile-main section:not([hidden]) :is(h1,h2)');
+    heading.tabIndex = -1;
+    heading.focus({preventScroll:true});
     window.scrollTo({top:0,behavior:'instant'});
   } else if (location.hash === '#catalog') {
     get('catalog').scrollIntoView();
