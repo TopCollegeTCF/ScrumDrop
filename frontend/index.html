@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="ru">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ScrumDrop — Коллекция кейсов</title><link rel="stylesheet" href="cases.css?v=api-3"><link rel="stylesheet" href="poker.css?v=poker-7"></head>
+<body>
+<header><div class="bar"><a class="brand" href="#">Scrum<span>Drop</span></a><nav class="main-nav" aria-label="Разделы сайта">
+<a href="#catalog"><span aria-hidden="true">▣</span> Кейсы</a>
+<a href="#games"><span aria-hidden="true">✦</span> Мини-игры</a>
+<a href="#upgrade"><span aria-hidden="true">↑</span> Апгрейдер</a>
+<a href="#poker"><span aria-hidden="true">♠</span> Покер</a></nav><span class="wallet" id="wallet" hidden><i aria-hidden="true">◈</i> <b id="balance">0</b> <span id="balance-unit">монет</span></span><a class="profile-link" id="profile-link" href="#login">Войти</a></div></header>
+<p class="notice" id="notice" role="alert" hidden></p>
+<main>
+<section class="hero"><canvas id="aurora" aria-hidden="true"></canvas><div class="wrap intro"><h1>Коллекция<br><em class="matrix">кейсов</em></h1><a class="cta" href="#catalog">Выбрать кейс</a></div></section>
+<section class="wrap shelf" id="catalog"><h2>Каталог кейсов</h2><div id="cases"><p class="muted">Загружаем каталог…</p></div></section>
+<section class="wrap activity" id="games" hidden>
+<h1 tabindex="-1">Мини-<span class="matrix">игры</span></h1>
+<article class="account-card activity-card"><h2>Тест реакции</h2>
+<p id="reaction-status" role="status">Нажми «Начать» и дождись зелёного сигнала.</p>
+<button class="cta reaction" id="reaction" type="button">Начать</button>
+<p id="reaction-record"></p></article></section>
+<section class="wrap activity" id="upgrade" hidden>
+<h1 tabindex="-1"><span class="matrix">Апгрейдер</span></h1>
+<article class="account-card activity-card">
+<p>Улучши предмет из коллекции до уровня +1. Улучшение бесплатное.</p>
+<form id="upgrade-form"><label for="upgrade-item">Предмет</label>
+<select id="upgrade-item" required></select><button class="cta">Улучшить</button></form>
+<p id="upgrade-empty" hidden><span id="upgrade-empty-text">Для улучшения нужен предмет из </span><a id="upgrade-empty-link" href="#catalog">кейса</a>.</p>
+<p id="upgrade-status" role="status"></p></article></section>
+<section class="wrap activity poker" id="poker" hidden aria-labelledby="poker-title">
+<h1 tabindex="-1" id="poker-title">Покер</h1>
+<div id="poker-app"></div>
+<p class="sr-only" id="poker-status" role="status" aria-live="polite"></p>
+<div class="pk-toast" id="poker-toast" role="alert"></div></section>
+<section class="wrap activity auth" id="auth" hidden aria-labelledby="auth-title">
+<h1 tabindex="-1" id="auth-title"><span class="matrix">Вход</span></h1>
+<article class="account-card activity-card">
+<p id="auth-reason" hidden></p>
+<form id="login-form" class="auth-form">
+<label for="login-name">Логин или почта</label>
+<input id="login-name" name="login" autocomplete="username" required maxlength="254">
+<label for="login-password">Пароль</label>
+<input id="login-password" name="password" type="password" autocomplete="current-password" required>
+<button class="cta cta-green">Войти</button>
+<p class="form-error" id="login-error" role="alert"></p>
+<p>Нет аккаунта? <a href="#register">Создать аккаунт</a></p>
+</form>
+<form id="register-form" class="auth-form" hidden>
+<label for="reg-username">Логин</label>
+<input id="reg-username" name="username" autocomplete="username" required minlength="3" maxlength="32" aria-describedby="reg-username-hint">
+<small class="hint" id="reg-username-hint">3–32 символа: буквы, цифры, точка, дефис, подчёркивание.</small>
+<label for="reg-email">Почта</label>
+<input id="reg-email" name="email" type="email" autocomplete="email" required maxlength="254">
+<label for="reg-password">Пароль</label>
+<input id="reg-password" name="password" type="password" autocomplete="new-password" required minlength="8" aria-describedby="reg-password-hint">
+<small class="hint" id="reg-password-hint">Не короче 8 символов.</small>
+<button class="cta cta-green">Создать аккаунт</button>
+<p class="form-error" id="register-error" role="alert"></p>
+<p>Новым игрокам — 100 монет на первые кейсы. Уже есть аккаунт? <a href="#login">Войти</a></p>
+</form>
+</article></section>
+<section id="account" class="dashboard" hidden aria-label="Личный кабинет">
+<aside class="profile-rail">
+<div class="account-card portrait"><img id="avatar" src="cases/5.jpg" alt=""><div><small>Профиль игрока</small><h2 id="player"></h2></div></div>
+<nav class="account-card profile-nav" aria-label="Разделы личного кабинета">
+<a href="#account">Обзор</a><a href="#account/inventory">Моя коллекция</a><a href="#account/history">История</a><a href="#account/settings">Настройки</a></nav></aside>
+<div class="profile-main">
+<section class="account-card" id="overview"><h1 id="account-title" tabindex="-1">Личный <span class="matrix">кабинет</span></h1>
+<dl class="metrics"><div><dt>Баланс</dt><dd><span id="coins"></span> <small id="coins-unit">монет</small></dd><button id="top-up" class="top-up" type="button">Пополнить</button></div><div><dt>Открыто кейсов</dt><dd id="opened"></dd></div><div><dt>Видов предметов</dt><dd id="unique"></dd></div></dl></section>
+<section class="account-card" id="inventory-panel"><h2>Моя коллекция</h2><div id="bag"></div></section>
+<section class="account-card" id="history-panel"><h2>История открытий</h2><div id="log"></div></section>
+<section class="account-card" id="settings-panel" hidden><h2>Настройки профиля</h2><form id="name-form"><label for="nickname">Имя игрока</label><div><input id="nickname" name="nickname" maxlength="24" required autocomplete="nickname"><button class="cta cta-green">Сохранить</button></div><span role="status" id="saved"></span></form><p>Имя, аватарка и коллекция хранятся в вашем аккаунте.</p><fieldset class="avatars"><legend>Аватарка</legend><div id="avatar-options"></div></fieldset>
+<div class="session-box"><p>Вы вошли как <b id="account-login"></b> · <span id="account-email"></span></p><button type="button" class="top-up" id="logout">Выйти из аккаунта</button></div></section></div>
+<aside class="account-card spotlight"><h2 id="feature-title">Кейс из каталога</h2><img id="feature-img" src="cases/0.jpg" alt=""><h3 id="feature-name">Орбита</h3><p id="feature-reward"></p><a class="cta cta-green" href="#catalog">Перейти к кейсам</a></aside></section>
+</main><footer class="wrap"><span>ScrumDrop</span></footer>
+<dialog id="detail"><form method="dialog"><button aria-label="Закрыть" class="close">×</button></form><img id="preview" alt=""><h2 id="name"></h2><p id="rewards"></p><p id="result" role="status"></p><button type="button" class="cta" id="buy">Открыть</button></dialog>
+<dialog id="card-demo" aria-labelledby="card-demo-title">
+<form method="dialog"><button aria-label="Закрыть" class="close">×</button></form>
+<h2 id="card-demo-title">Пополнение монет</h2>
+<div class="demo-card" aria-hidden="true"><span>ScrumDrop</span><span>•••• &nbsp; •••• &nbsp; •••• &nbsp; 0000</span></div>
+<p>Демо-режим: монеты виртуальные, карта не нужна.</p>
+<div class="top-up-options" role="group" aria-label="Сумма пополнения">
+<button type="button" class="cta" data-amount="100">+100</button>
+<button type="button" class="cta" data-amount="300">+300</button>
+<button type="button" class="cta" data-amount="500">+500</button>
+</div>
+<p id="top-up-status" role="status"></p>
+</dialog>
+<script src="cases.js?v=api-3"></script>
+<script src="poker.js?v=poker-7"></script></body></html>

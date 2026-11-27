@@ -14,8 +14,12 @@ services:
       - "5432:5432"
     volumes:
       - scrumdrop_pgdata:/var/lib/postgresql/data
+      # Скрипты выполняются только при создании пустого volume.
+      # Для уже существующей базы миграции применяет сервер: npm run db:migrate.
       - ./db/migrations/001_init.sql:/docker-entrypoint-initdb.d/001_init.sql:ro
-      - ./db/seed.sql:/docker-entrypoint-initdb.d/002_seed.sql:ro
+      - ./db/migrations/002_cases_auth.sql:/docker-entrypoint-initdb.d/002_cases_auth.sql:ro
+      - ./db/migrations/003_poker.sql:/docker-entrypoint-initdb.d/003_poker.sql:ro
+      - ./db/seed.sql:/docker-entrypoint-initdb.d/004_seed.sql:ro
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U scrumdrop -d scrumdrop"]
       interval: 5s

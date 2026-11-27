@@ -1,8 +1,10 @@
 # База данных ScrumDrop
 
-PostgreSQL-схема для казино: пользователи, игры, ставки, журнал баланса и бонусы.
+PostgreSQL-схема ScrumDrop: пользователи и сессии, кейсы и предметы, открытия, инвентарь, журнал баланса и бонусы, покерные столы и раздачи. Покер пишет ставки в общие `games` и `bets`; остальные игры из `games` пока ждут своей очереди.
 
 ## Быстрый старт
+
+Проще всего — запустить сервер ([server/README.md](../server/README.md)): при старте он сам применяет все миграции и `db/seed.sql`, а применённые файлы записывает в `schema_migrations`. Отдельно это делает `npm run db:migrate` в папке `server`. Без Docker базу поднимает `npm run db:local`.
 
 ### Docker
 
@@ -13,7 +15,11 @@ docker compose up -d
 Compose поднимает PostgreSQL 16 на `localhost:5432`. При первом запуске автоматически выполняются:
 
 - `db/migrations/001_init.sql` — таблицы, ограничения, индексы;
-- `db/seed.sql` — семь игр.
+- `db/migrations/002_cases_auth.sql` — сессии, кейсы, предметы, открытия, инвентарь, новые типы операций;
+- `db/migrations/003_poker.sql` — покерные столы (`poker_sessions`) и история раздач (`poker_hands`);
+- `db/seed.sql` — семь игр (у покера бай-ин 40–400), десять кейсов и одиннадцать предметов.
+
+Если volume создан до появления новых миграций, Docker их уже не выполнит — запустите сервер или `npm run db:migrate`.
 
 Строка подключения:
 
@@ -41,6 +47,8 @@ docker compose up -d
 ```bash
 createdb -U postgres scrumdrop
 psql -U postgres -d scrumdrop -f db/migrations/001_init.sql
+psql -U postgres -d scrumdrop -f db/migrations/002_cases_auth.sql
+psql -U postgres -d scrumdrop -f db/migrations/003_poker.sql
 psql -U postgres -d scrumdrop -f db/seed.sql
 ```
 
@@ -50,8 +58,12 @@ psql -U postgres -d scrumdrop -f db/seed.sql
 dropdb -U postgres scrumdrop
 createdb -U postgres scrumdrop
 psql -U postgres -d scrumdrop -f db/migrations/001_init.sql
+psql -U postgres -d scrumdrop -f db/migrations/002_cases_auth.sql
+psql -U postgres -d scrumdrop -f db/migrations/003_poker.sql
 psql -U postgres -d scrumdrop -f db/seed.sql
 ```
+
+`002_cases_auth.sql` и `003_poker.sql` идемпотентны: их можно выполнить повторно без ошибок.
 
 ## Схема
 
@@ -117,6 +129,100 @@ erDiagram
     }
 ```
 
+### Кейсы, сессии и инвентарь (002)
+
+```mermaid
+erDiagram
+    users ||--o{ sessions : "входы"
+    cases ||--o{ case_items : "состав"
+    items ||--o{ case_items : "входит в"
+    users ||--o{ case_openings : "открывает"
+    case_items ||--o{ case_openings : "выпало"
+    case_openings ||--|| inventory_items : "награда"
+    case_openings ||--|| transactions : "case_open"
+
+    sessions {
+        bigint id PK
+        bigint user_id FK
+        text token_hash UK
+        timestamptz expires_at
+    }
+
+    cases {
+        bigint id PK
+        text code UK
+        text name
+        bigint price
+        text image
+        int sort_order
+        boolean is_active
+    }
+
+    items {
+        bigint id PK
+        text code UK
+        text name
+        text rarity
+    }
+
+    case_items {
+        bigint case_id PK
+        bigint item_id PK
+        int weight
+    }
+
+    case_openings {
+        bigint id PK
+        bigint user_id FK
+        bigint case_id FK
+        bigint item_id FK
+        uuid request_id
+        bigint price
+        timestamptz opened_at
+    }
+
+    inventory_items {
+        bigint id PK
+        bigint user_id FK
+        bigint item_id FK
+        bigint opening_id FK
+        smallint upgrade_level
+        timestamptz acquired_at
+    }
+```
+
+### Покер (003)
+
+```mermaid
+erDiagram
+    users ||--o{ poker_sessions : "садится за стол"
+    bets ||--|| poker_sessions : "бай-ин"
+    poker_sessions ||--o{ poker_hands : "раздачи"
+
+    poker_sessions {
+        bigint id PK
+        bigint user_id FK
+        bigint bet_id FK
+        text status
+        jsonb state
+        timestamptz created_at
+        timestamptz closed_at
+    }
+
+    poker_hands {
+        bigint id PK
+        bigint session_id FK
+        bigint user_id FK
+        int hand_no
+        jsonb hole_cards
+        jsonb board
+        bigint pot
+        bigint invested
+        bigint won
+        jsonb result_data
+    }
+```
+
 ## Таблицы
 
 ### `users`
@@ -166,7 +272,9 @@ SELECT * FROM users WHERE lower(username) = lower($1);
 
 | Поле | Смысл |
 |---|---|
-| `type` | `bet`, `win`, `bonus`, `signup_bonus`, `admin_adjust`, `refund` |
+| `type` | `bet`, `win`, `bonus`, `signup_bonus`, `admin_adjust`, `refund`, `case_open`, `top_up` |
+| `opening_id` | Открытие кейса для `case_open` (миграция 002) |
+| `request_id` | Ключ идемпотентности для `top_up`: уникален в паре с `user_id` (миграция 002) |
 | `amount` | Со знаком: `-` списание, `+` начисление |
 | `balance_after` | Баланс сразу после операции |
 | `bet_id` | Ссылка на ставку; пустая у бонусов и ручных корректировок |
@@ -176,6 +284,74 @@ SELECT * FROM users WHERE lower(username) = lower($1);
 ### `bonuses`
 
 Выданные бонусы. `bonus_type` — `signup_bonus`, `bonus` или `promo`. Стартовый бонус можно получить только один раз: это защищает частичный уникальный индекс. Каждое начисление должно также попадать в `transactions` с типом `bonus` или `signup_bonus`.
+
+### Поля `users` из миграции 002
+
+| Поле | Смысл |
+|---|---|
+| `display_name` | Имя игрока в интерфейсе, 1–24 символа; `NULL` — показывать `username` |
+| `avatar` | Код кейса, картинка которого служит аватаркой (по умолчанию `prism`) |
+| `reaction_best_ms` | Рекорд мини-игры «Тест реакции» |
+
+### `sessions`
+
+Входы в аккаунт. Cookie хранит случайный токен, в таблице лежит только его SHA-256 (`token_hash`), поэтому утечка базы не даёт войти чужими сессиями. Просроченные сессии (`expires_at`) не принимаются и удаляются при следующем входе игрока. При удалении пользователя его сессии удаляются каскадом.
+
+### `cases`, `items`, `case_items`
+
+Каталог. `cases.price` — цена открытия, `cases.image` — путь к картинке относительно `frontend/`, `sort_order` — порядок в каталоге, `is_active = FALSE` скрывает кейс. `items.rarity` — `common`, `rare`, `epic` или `legendary`. Шанс предмета в кейсе равен `weight / сумма weight` этого кейса: в стартовых данных обычный предмет — 75, Кристалл — 25.
+
+### `case_openings`
+
+Одна строка — одно открытие. `price` — сколько списали на момент открытия. Составной внешний ключ `(case_id, item_id) → case_items` гарантирует, что награда принадлежит открытому кейсу. Уникальная пара `(user_id, request_id)` защищает от двойного открытия при повторе запроса.
+
+### `inventory_items`
+
+Коллекция игрока: один экземпляр на открытие (`opening_id` уникален). `upgrade_level` повышает Апгрейдер; сервер ограничивает его значением `+1`.
+
+### Открытие кейса
+
+Сервер выполняет всё в одной транзакции:
+
+```sql
+BEGIN;
+
+-- 1. Открытие. При повторе того же request_id вставка ничего не делает,
+--    и сервер возвращает ранее сохранённый результат.
+INSERT INTO case_openings (user_id, case_id, item_id, request_id, price)
+VALUES (1, 1, 11, '3f0c8f0e-7a6b-4c2d-9e1f-1234567890ab', 30)
+ON CONFLICT (user_id, request_id) DO NOTHING
+RETURNING id; -- например, 7
+
+-- 2. Условное списание вместе с журналом. 0 строк — «Недостаточно монет», ROLLBACK.
+WITH updated AS (
+    UPDATE users SET balance = balance - 30
+     WHERE id = 1 AND balance >= 30
+    RETURNING balance
+)
+INSERT INTO transactions (user_id, opening_id, type, amount, balance_after)
+SELECT 1, 7, 'case_open', -30, balance FROM updated;
+
+-- 3. Предмет в коллекцию.
+INSERT INTO inventory_items (user_id, item_id, opening_id) VALUES (1, 11, 7);
+
+COMMIT;
+```
+
+### `poker_sessions`, `poker_hands`
+
+Покер — техасский холдем против ботов — играется «столом». Одна посадка = одна строка `poker_sessions` и одна ставка в `bets` (игра `poker`). Пока игрок сидит, фишки лежат на столе в `poker_sessions.state`: там весь стол целиком — колода, карты, стеки ботов. Колоду и чужие карты видит только сервер. Одна фишка = одна монета.
+
+| Событие | `bets` | `transactions` |
+|---|---|---|
+| Сел за стол с бай-ином 100 | новая строка: `amount = 100`, `status = 'pending'`, `request_id` от клиента | `bet`, `−100` |
+| Играет раздачи | — | — |
+| Встал с 134 фишками | `payout = 134`, `status = 'won'`, итог в `result_data` | `win`, `+134` |
+| Проиграл все фишки | `payout = 0`, `status = 'lost'`, сессия закрывается сама | — |
+
+`won` значит «со стола вернулись фишки», даже если их меньше бай-ина; прибыль — `result_data.profit`. Уникальный индекс `poker_sessions_one_active` разрешает игроку только один открытый стол, `request_id` в `bets` защищает от двойного бай-ина при повторе запроса.
+
+Каждая сыгранная раздача пишется в `poker_hands`: карты игрока, борд, весь банк, сколько игрок поставил (`invested`) и забрал (`won`), итог в `result_data`. Бай-ин ограничен `games.min_bet`…`max_bet` строки `poker` (40…400), блайнды 1/2 заданы в `server/src/poker/session.ts`. Если выключить игру (`games.is_active = FALSE`), сесть и начать новую раздачу нельзя, а встать из-за стола — можно.
 
 ## Правила
 
@@ -310,8 +486,8 @@ UPDATE users SET role = 'admin' WHERE lower(username) = lower('demo');
 
 ## Что не входит
 
-- Аутентификация, сессии и токены — на стороне приложения.
+- Аутентификация — на стороне приложения; в БД хранятся только хеши паролей и хеши сессионных токенов.
 - ГСЧ и игровая логика — на стороне приложения.
 - Реальные деньги, депозиты и выводы — фишки виртуальные.
-- Сложные ставки (split/double-down в блэкджеке, несколько кругов торговли в покере) — текущая модель `bets` = одна ставка на раунд; для них понадобится расширение схемы.
+- Сложные ставки (split/double-down в блэкджеке) — текущая модель `bets` = одна ставка на раунд. Покер обходит это так: ставка — вся посадка за стол, а торговля внутри раздач хранится в `poker_sessions.state`.
 - Миграционный инструмент (Flyway, Liquibase, Prisma) — пока один SQL-файл. Когда схема начнёт меняться, файлы миграций нужно добавлять с новыми номерами.
