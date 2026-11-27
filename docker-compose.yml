@@ -1,0 +1,26 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: scrumdrop-postgres
+    restart: unless-stopped
+    # Локальные dev-credentials. Не использовать эти пароли в production.
+    environment:
+      TZ: UTC
+      POSTGRES_DB: scrumdrop
+      POSTGRES_USER: scrumdrop
+      POSTGRES_PASSWORD: scrumdrop
+    ports:
+      # Если 5432 уже занят, замените на "5433:5432".
+      - "5432:5432"
+    volumes:
+      - scrumdrop_pgdata:/var/lib/postgresql/data
+      - ./db/migrations/001_init.sql:/docker-entrypoint-initdb.d/001_init.sql:ro
+      - ./db/seed.sql:/docker-entrypoint-initdb.d/002_seed.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U scrumdrop -d scrumdrop"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  scrumdrop_pgdata:

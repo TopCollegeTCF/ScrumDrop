@@ -17,6 +17,10 @@ ScrumDrop — учебный командный проект по разрабо
 
 Node.js, React, Vite, TypeScript, PostgreSQL.
 
+## База данных
+
+Схема PostgreSQL, стартовые игры и инструкция запуска — в [db/README.md](db/README.md).
+
 ## Команда
 
 - [HoMaX](https://github.com/nictomist1-arch)
